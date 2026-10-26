@@ -65,9 +65,9 @@ public final class InputSession {
         return finish(displayLanguage)
     }
 
-    /// 앱이 바뀌면 앞 단어 정보는 의미가 없다.
-    public func resetContext() {
-        previousLanguage = nil
+    /// 앱이 바뀌면 앞 단어 정보는 의미가 없다. 터미널처럼 영어가 기본인 곳은 영어로 시작한다.
+    public func resetContext(to language: Language? = nil) {
+        previousLanguage = language
     }
 
     private func finish(_ language: Language) -> String {
