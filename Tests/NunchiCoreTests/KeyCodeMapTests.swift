@@ -1,5 +1,5 @@
 import Testing
-@testable import HanyeongCore
+@testable import NunchiCore
 
 @Suite struct KeyCodeMapTests {
     @Test func lettersFollowQwertyRegardlessOfLayout() {

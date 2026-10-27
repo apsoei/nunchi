@@ -5,7 +5,7 @@
 import AppKit
 import Carbon
 
-let modeID = "io.github.apsoei.inputmethod.HanyeongAuto.Korean"
+let modeID = "io.github.apsoei.inputmethod.Nunchi.Korean"
 
 func inputSource(_ id: String) -> TISInputSource? {
     let filter = [kTISPropertyInputSourceID as String: id] as CFDictionary
@@ -96,7 +96,7 @@ let cases: [Case] = [
 let app = NSApplication.shared
 app.setActivationPolicy(.regular)
 let window = NSWindow(contentRect: NSRect(x: 240, y: 240, width: 520, height: 260), styleMask: [.titled], backing: .buffered, defer: false)
-window.title = "hanyeong-auto e2e"
+window.title = "nunchi e2e"
 window.makeKeyAndOrderFront(nil)
 app.activate(ignoringOtherApps: true)
 

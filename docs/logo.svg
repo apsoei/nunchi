@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="눈치 로고: ㄴ 이 한 획으로 영문 n 과 이어짐">
+  <rect width="128" height="128" rx="28" fill="#111827"/>
+  <path d="M28 30 V92 H66" fill="none" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M66 92 V62 Q66 48 82 48 Q98 48 98 62 V92" fill="none" stroke="#4D8DFF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
