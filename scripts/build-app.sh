@@ -12,6 +12,6 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Nunchi"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-cp Resources/icon.tiff Resources/AppIcon.icns "$APP/Contents/Resources/"
+cp -R Resources/icon.tiff Resources/AppIcon.icns Resources/ko.lproj Resources/en.lproj "$APP/Contents/Resources/"
 codesign --force --sign - "$APP" >&2
 echo "$APP"
