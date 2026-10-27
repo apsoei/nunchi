@@ -1,5 +1,5 @@
 import Testing
-@testable import HanyeongCore
+@testable import NunchiCore
 
 @Suite struct WordJudgeTests {
     private func judge(_ word: String, after previous: Language? = nil) -> Language {

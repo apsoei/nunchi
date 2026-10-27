@@ -1,11 +1,11 @@
 import Carbon
 import Cocoa
-import HanyeongCore
+import NunchiCore
 import InputMethodKit
 
 /// InputMethodKit 이벤트를 `KeyRouter` 에 넘기고, 돌려받은 할 일을 입력창에 적용만 한다.
-/// 판단 로직은 전부 HanyeongCore 에 있다.
-@objc(HanyeongAutoInputController)
+/// 판단 로직은 전부 NunchiCore 에 있다.
+@objc(NunchiInputController)
 final class InputController: IMKInputController {
     /// NX_DEVICERCMDKEYMASK: modifierFlags 의 장치별 비트 중 오른쪽 ⌘.
     private static let rightCommandMask: UInt = 0x10

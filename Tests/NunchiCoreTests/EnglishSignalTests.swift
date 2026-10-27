@@ -1,5 +1,5 @@
 import Testing
-@testable import HanyeongCore
+@testable import NunchiCore
 
 @Suite struct EnglishSignalTests {
     /// 처음으로 영어 신호가 켜지는 키 위치(1부터). 끝까지 안 켜지면 nil.

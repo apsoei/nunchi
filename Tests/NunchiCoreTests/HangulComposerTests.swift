@@ -1,5 +1,5 @@
 import Testing
-@testable import HanyeongCore
+@testable import NunchiCore
 
 @Suite struct HangulComposerTests {
     private func text(_ keys: String) -> String {
