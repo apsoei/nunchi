@@ -61,6 +61,10 @@ final class InputController: IMKInputController {
             guard tapDetector.flagsChanged(keyCode: event.keyCode, rightCommandDown: rightDown, time: event.timestamp) else {
                 return false
             }
+            // 앱이 ⌘P 같은 단축키를 먼저 가져가면 P 가 입력기에 안 온다. 누르고 있는 동안 다른 키가 눌렸는지
+            // 시스템에 물어서(권한 불필요) 눌렸으면 뒤집기가 아니라 단축키로 본다.
+            let sinceLastKey = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
+            guard sinceLastKey >= tapDetector.lastHoldDuration else { return false }
             keyEvent = .rightCommandTap
         case .keyDown:
             tapDetector.keyDown()
