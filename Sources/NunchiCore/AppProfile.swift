@@ -5,7 +5,6 @@ public enum AppProfile {
         "com.googlecode.iterm2",
         "dev.warp.Warp-Stable",
         "com.mitchellh.ghostty",
-        "com.cmuxterm.app",                // cmux (Ghostty 기반)
         "net.kovidgoyal.kitty",
         "io.alacritty",
         "com.github.wez.wezterm",
