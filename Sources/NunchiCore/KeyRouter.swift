@@ -70,7 +70,17 @@ public final class KeyRouter {
     }
 
     public func handle(_ event: KeyEvent, context: KeyContext) -> RouterResult {
-        // 확정한 단어 되돌리기는 Space 바로 다음의 오른쪽 ⌘ 에서만. 다른 키가 오면 취소한다.
+        // 확정한 단어 되돌리기: 단어 뒤에 Space·Backspace(공백만 지울 때)만 쳤으면 유지, 다른 키가 오면 취소.
+        if session.isEmpty, session.canRetro, !context.secureInput, !context.modifierHeld {
+            if event == .space {
+                session.retroSpaceTyped()
+                return RouterResult(effects: [], passThrough: true)
+            }
+            if event == .backspace {
+                _ = session.retroBackspace()
+                return RouterResult(effects: [], passThrough: true)
+            }
+        }
         if event != .rightCommandTap { session.clearRetro() }
         // 비밀번호 칸: 남은 미리보기만 보이는 그대로 확정하고, 키는 손대지 않는다.
         if context.secureInput {
@@ -98,13 +108,15 @@ public final class KeyRouter {
         case .rightCommandTap:
             if session.flip() { return RouterResult(effects: [.setMarked(session.display)], passThrough: false) }
             guard let (old, new) = session.retroCandidate() else { return RouterResult(effects: [], passThrough: true) }
+            let spaces = String(repeating: " ", count: session.retroSpaces)
             if context.terminalEmulator {
-                // 확정 뒤 다른 키가 없었으니 지울 것은 방금 단어와 공백뿐이다.
-                return RouterResult(effects: [.retypeLast(deleteCount: old.count + 1, text: new + " ")], passThrough: false)
+                // 확정 뒤 Space·Backspace 만 쳤으니 지울 것은 방금 단어와 남은 공백뿐이다.
+                return RouterResult(effects: [.retypeLast(deleteCount: old.count + spaces.count, text: new + spaces)],
+                                    passThrough: false)
             }
             // 터미널처럼 다루는 편집기(VSCode 등)는 앞 글자를 바꿔 쓸 수 없다.
             guard !context.terminalLike else { return RouterResult(effects: [], passThrough: true) }
-            return RouterResult(effects: [.replaceLast(old: old + " ", new: new + " ")], passThrough: false)
+            return RouterResult(effects: [.replaceLast(old: old + spaces, new: new + spaces)], passThrough: false)
 
         case .space:
             let committed = session.endWord()

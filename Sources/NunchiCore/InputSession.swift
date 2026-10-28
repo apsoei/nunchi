@@ -25,6 +25,8 @@ public final class InputSession {
     private var lastEnded: Committed?
     /// 되돌릴 수 있는 단어(Space 로 끝낸 직후에만 있다).
     private var retro: Committed?
+    /// 되돌릴 단어 뒤에 지금 남아 있는 공백 수. Space 로 늘고 Backspace 로 준다.
+    public private(set) var retroSpaces = 0
 
     public init() {}
 
@@ -86,9 +88,30 @@ public final class InputSession {
     }
 
     /// 방금 끝낸 단어를 되돌릴 수 있게 한다(Space 로 끝냈을 때 라우터가 부른다).
-    public func armRetro() { retro = lastEnded }
+    public func armRetro() {
+        retro = lastEnded
+        retroSpaces = 1
+    }
 
-    public func clearRetro() { retro = nil }
+    public func clearRetro() {
+        retro = nil
+        retroSpaces = 0
+    }
+
+    public var canRetro: Bool { retro != nil }
+
+    /// 되돌릴 단어 뒤에 Space 를 더 쳤다.
+    public func retroSpaceTyped() { retroSpaces += 1 }
+
+    /// 되돌릴 단어 뒤에서 Backspace. 공백만 지웠으면 true, 단어 글자까지 지우게 되면 되돌리기를 취소하고 false.
+    public func retroBackspace() -> Bool {
+        guard retroSpaces > 0 else {
+            clearRetro()
+            return false
+        }
+        retroSpaces -= 1
+        return true
+    }
 
     /// 되돌리기 후보: (지금 입력창에 있는 모양, 바꿀 모양).
     public func retroCandidate() -> (old: String, new: String)? {

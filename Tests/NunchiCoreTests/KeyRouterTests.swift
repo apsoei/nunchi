@@ -97,11 +97,40 @@ import Testing
             == RouterResult(effects: [.replaceLast(old: "rk ", new: "가 ")], passThrough: false))
     }
 
-    @Test func anyOtherKeyCancelsTheRewrite() {
+    @Test func rewriteSurvivesExtraSpacesAndDeletedSpace() {
         let r = router(typing: "rk")
         _ = r.handle(.space, context: normal)
-        _ = r.handle(.backspace, context: normal)   // 공백을 지웠다
+        #expect(r.handle(.space, context: normal) == RouterResult(effects: [], passThrough: true))
+        #expect(r.handle(.rightCommandTap, context: normal)
+            == RouterResult(effects: [.replaceLast(old: "가  ", new: "rk  ")], passThrough: false))
+
+        let r2 = router(typing: "rk")
+        _ = r2.handle(.space, context: normal)
+        #expect(r2.handle(.backspace, context: normal) == RouterResult(effects: [], passThrough: true))   // 공백만 지웠다
+        #expect(r2.handle(.rightCommandTap, context: normal)
+            == RouterResult(effects: [.replaceLast(old: "가", new: "rk")], passThrough: false))
+    }
+
+    @Test func deletingIntoTheWordOrTypingCancelsTheRewrite() {
+        let r = router(typing: "rk")
+        _ = r.handle(.space, context: normal)
+        _ = r.handle(.backspace, context: normal)
+        _ = r.handle(.backspace, context: normal)   // 단어 글자까지 지웠다
         #expect(r.handle(.rightCommandTap, context: normal) == RouterResult(effects: [], passThrough: true))
+
+        let r2 = router(typing: "rk")
+        _ = r2.handle(.space, context: normal)
+        _ = r2.handle(.other, context: normal)      // 다른 키
+        #expect(r2.handle(.rightCommandTap, context: normal) == RouterResult(effects: [], passThrough: true))
+    }
+
+    @Test func terminalRetypeCountsTrailingSpaces() {
+        let console = KeyContext(terminalEmulator: true)
+        let r = router(typing: "rk", context: console)
+        _ = r.handle(.space, context: console)
+        _ = r.handle(.space, context: console)
+        #expect(r.handle(.rightCommandTap, context: console)
+            == RouterResult(effects: [.retypeLast(deleteCount: 3, text: "rk  ")], passThrough: false))
     }
 
     @Test func rewriteOnlyAfterSpaceAndNotInTerminal() {
