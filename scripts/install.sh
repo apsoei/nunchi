@@ -19,6 +19,6 @@ pkill -x Nunchi 2>/dev/null || true
 mkdir -p "$METHODS"
 rm -rf "$DEST"
 cp -R "$APP" "$DEST"
-swift "$ROOT/scripts/register.swift" "$DEST"
+"$DEST/Contents/MacOS/Nunchi" --register
 echo "설치 완료: $DEST"
 echo "메뉴 막대의 입력 메뉴에서 '눈치'를 다시 고르세요. 처음 설치라 목록에 없으면 로그아웃 후 다시 로그인하세요."
