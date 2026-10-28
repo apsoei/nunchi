@@ -8,10 +8,12 @@ public enum KeyCodeMap {
     ]
     static let backspace: UInt16 = 0x33
     static let escape: UInt16 = 0x35
+    static let space: UInt16 = 0x31
 
     public static func event(keyCode: UInt16, shift: Bool) -> KeyEvent {
         if keyCode == backspace { return .backspace }
         if keyCode == escape { return .escape }
+        if keyCode == space { return .space }
         guard let letter = letters[keyCode] else { return .other }
         return .letter(shift ? Character(letter.uppercased()) : letter)
     }

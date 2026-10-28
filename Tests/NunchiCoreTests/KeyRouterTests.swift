@@ -81,6 +81,67 @@ import Testing
         #expect(n.handle(.other, context: normal) == RouterResult(effects: [.insert("그")], passThrough: true))
     }
 
+    @Test func spaceEndsWordLikeOtherKeys() {
+        let r = router(typing: "git")
+        #expect(r.handle(.space, context: normal) == RouterResult(effects: [.insert("git")], passThrough: true))
+    }
+
+    @Test func rightCommandRightAfterSpaceRewritesTheLastWord() {
+        let r = router(typing: "rk")
+        _ = r.handle(.space, context: normal)
+        #expect(r.handle(.rightCommandTap, context: normal)
+            == RouterResult(effects: [.replaceLast(old: "가 ", new: "rk ")], passThrough: false))
+        r.retroFlipApplied()
+        // 한 번 더 누르면 원래대로
+        #expect(r.handle(.rightCommandTap, context: normal)
+            == RouterResult(effects: [.replaceLast(old: "rk ", new: "가 ")], passThrough: false))
+    }
+
+    @Test func anyOtherKeyCancelsTheRewrite() {
+        let r = router(typing: "rk")
+        _ = r.handle(.space, context: normal)
+        _ = r.handle(.backspace, context: normal)   // 공백을 지웠다
+        #expect(r.handle(.rightCommandTap, context: normal) == RouterResult(effects: [], passThrough: true))
+    }
+
+    @Test func rewriteOnlyAfterSpaceAndNotInTerminal() {
+        let r = router(typing: "rk")
+        _ = r.handle(.other, context: normal)        // Return·문장부호로 끝냄
+        #expect(r.handle(.rightCommandTap, context: normal) == RouterResult(effects: [], passThrough: true))
+        let t = router(typing: "rk", context: terminal)
+        _ = t.handle(.space, context: terminal)
+        #expect(t.handle(.rightCommandTap, context: terminal) == RouterResult(effects: [], passThrough: true))
+    }
+
+    @Test func failedRewriteIsForgotten() {
+        let r = router(typing: "rk")
+        _ = r.handle(.space, context: normal)
+        _ = r.handle(.rightCommandTap, context: normal)
+        r.retroFlipFailed()
+        #expect(r.handle(.rightCommandTap, context: normal) == RouterResult(effects: [], passThrough: true))
+        #expect(r.takeFlip() == nil)
+    }
+
+    @Test func rewriteIsReportedForLearning() {
+        let r = router(typing: "rk")
+        _ = r.handle(.space, context: normal)
+        _ = r.handle(.rightCommandTap, context: normal)
+        r.retroFlipApplied()
+        #expect(r.takeFlip() == Flip(keys: Array("rk"), language: .english))
+        _ = r.handle(.rightCommandTap, context: normal)
+        r.retroFlipApplied()
+        #expect(r.takeFlip() == nil)   // 자동 판별대로 되돌린 것은 배울 거리가 아니다
+    }
+
+    @Test func rewriteKeepsCapsLockCase() {
+        let r = KeyRouter()
+        let caps = KeyContext(capsLock: true)
+        "api".forEach { _ = r.handle(.letter($0), context: caps) }
+        #expect(r.handle(.space, context: caps) == RouterResult(effects: [.insert("API")], passThrough: true))
+        #expect(r.handle(.rightCommandTap, context: caps)
+            == RouterResult(effects: [.replaceLast(old: "API ", new: "메ㅑ ")], passThrough: false))
+    }
+
     @Test func focusLossCommitsAsShown() {
         let r = router(typing: "git")
         #expect(r.commitAsDisplayed() == [.insert("햣")])

@@ -15,6 +15,17 @@ public final class InputSession {
     public var wordbook: Wordbook = .empty
     private var lastFlip: Flip?
 
+    /// 확정한 단어. `automatic` 은 뒤집기 없이 판별했을 때의 언어.
+    private struct Committed {
+        let keys: [Character]
+        let capsLocked: [Bool]
+        var language: Language
+        let automatic: Language
+    }
+    private var lastEnded: Committed?
+    /// 되돌릴 수 있는 단어(Space 로 끝낸 직후에만 있다).
+    private var retro: Committed?
+
     public init() {}
 
     public var isEmpty: Bool { keys.isEmpty }
@@ -70,7 +81,30 @@ public final class InputSession {
             language = forced
             if forced != automatic { lastFlip = Flip(keys: keys, language: forced) }
         }
+        lastEnded = Committed(keys: keys, capsLocked: capsLocked, language: language, automatic: automatic)
         return finish(language)
+    }
+
+    /// 방금 끝낸 단어를 되돌릴 수 있게 한다(Space 로 끝냈을 때 라우터가 부른다).
+    public func armRetro() { retro = lastEnded }
+
+    public func clearRetro() { retro = nil }
+
+    /// 되돌리기 후보: (지금 입력창에 있는 모양, 바꿀 모양).
+    public func retroCandidate() -> (old: String, new: String)? {
+        guard let retro else { return nil }
+        let other: Language = retro.language == .english ? .korean : .english
+        return (render(retro.language, keys: retro.keys, capsLocked: retro.capsLocked),
+                render(other, keys: retro.keys, capsLocked: retro.capsLocked))
+    }
+
+    /// 되돌리기를 적용했다. 한 번 더 누르면 다시 뒤집을 수 있게 남겨 둔다.
+    public func applyRetroFlip() {
+        guard var flipped = retro else { return }
+        flipped.language = flipped.language == .english ? .korean : .english
+        retro = flipped
+        previousLanguage = flipped.language
+        lastFlip = flipped.language == flipped.automatic ? nil : Flip(keys: flipped.keys, language: flipped.language)
     }
 
     /// 마지막으로 뒤집어서 확정한 단어. 한 번 꺼내면 비워진다.
@@ -81,6 +115,7 @@ public final class InputSession {
 
     /// 판별 없이 보이는 그대로 확정한다(포커스 이동, 터미널의 Esc).
     public func commitAsDisplayed() -> String? {
+        lastEnded = nil
         guard !keys.isEmpty else { return nil }
         return finish(displayLanguage)
     }
@@ -100,6 +135,10 @@ public final class InputSession {
     }
 
     private func render(_ language: Language) -> String {
+        render(language, keys: keys, capsLocked: capsLocked)
+    }
+
+    private func render(_ language: Language, keys: [Character], capsLocked: [Bool]) -> String {
         guard language == .english else { return HangulComposer.compose(keys).text }
         return String(zip(keys, capsLocked).map { key, caps in caps ? Character(key.uppercased()) : key })
     }

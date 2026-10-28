@@ -12,7 +12,7 @@ import Testing
     @Test func specialKeys() {
         #expect(KeyCodeMap.event(keyCode: 0x33, shift: false) == .backspace)
         #expect(KeyCodeMap.event(keyCode: 0x35, shift: false) == .escape)
-        #expect(KeyCodeMap.event(keyCode: 0x31, shift: false) == .other)   // Space
+        #expect(KeyCodeMap.event(keyCode: 0x31, shift: false) == .space)
         #expect(KeyCodeMap.event(keyCode: 0x24, shift: false) == .other)   // Return
         #expect(KeyCodeMap.event(keyCode: 0x12, shift: true) == .other)    // !
     }

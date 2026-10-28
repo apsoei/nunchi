@@ -126,6 +126,17 @@ final class InputController: IMKInputController {
         }
     }
 
+    /// 커서 바로 앞이 정말 `old` 일 때만 `new` 로 바꾼다. 앱이 앞 글자를 알려 주지 않으면 하지 않는다.
+    private func replaceBeforeCursor(_ old: String, with new: String, in client: IMKTextInput) -> Bool {
+        let cursor = client.selectedRange()
+        let length = old.utf16.count
+        guard cursor.location != NSNotFound, cursor.length == 0, cursor.location >= length else { return false }
+        let range = NSRange(location: cursor.location - length, length: length)
+        guard client.attributedSubstring(from: range)?.string == old else { return false }
+        client.insertText(new, replacementRange: range)
+        return true
+    }
+
     private func apply(_ effects: [Effect], to sender: Any!) {
         guard !effects.isEmpty, let client = sender as? IMKTextInput else { return }
         let notFound = NSRange(location: NSNotFound, length: 0)
@@ -137,6 +148,12 @@ final class InputController: IMKInputController {
                 client.setMarkedText(text, selectionRange: NSRange(location: text.utf16.count, length: 0), replacementRange: notFound)
             case .clearMarked:
                 client.setMarkedText("", selectionRange: NSRange(location: 0, length: 0), replacementRange: notFound)
+            case .replaceLast(let old, let new):
+                if replaceBeforeCursor(old, with: new, in: client) {
+                    router.retroFlipApplied()
+                } else {
+                    router.retroFlipFailed()
+                }
             }
         }
     }

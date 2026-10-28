@@ -4,7 +4,8 @@ public enum KeyEvent: Equatable, Sendable {
     case backspace
     case escape
     case rightCommandTap     // 오른쪽 ⌘ 를 다른 키 없이 눌렀다 뗌
-    case other               // Space·Return·숫자·문장부호·방향키 등 단어를 끝내는 키
+    case space               // 단어를 끝낸다. 바로 뒤 오른쪽 ⌘ 로 그 단어를 되돌릴 수 있다
+    case other               // Return·숫자·문장부호·방향키 등 단어를 끝내는 키
 }
 
 public struct KeyContext: Equatable, Sendable {
@@ -27,6 +28,8 @@ public enum Effect: Equatable, Sendable {
     case insert(String)      // 확정. 미리보기가 있으면 그 자리를 대신한다
     case setMarked(String)   // 밑줄 미리보기 갱신
     case clearMarked
+    /// 커서 바로 앞의 `old` 를 `new` 로 바꾼다(확정한 단어 되돌리기). 앞 글자가 `old` 가 아니면 하지 않는다.
+    case replaceLast(old: String, new: String)
 }
 
 public struct RouterResult: Equatable, Sendable {
@@ -61,6 +64,8 @@ public final class KeyRouter {
     }
 
     public func handle(_ event: KeyEvent, context: KeyContext) -> RouterResult {
+        // 확정한 단어 되돌리기는 Space 바로 다음의 오른쪽 ⌘ 에서만. 다른 키가 오면 취소한다.
+        if event != .rightCommandTap { session.clearRetro() }
         // 비밀번호 칸: 남은 미리보기만 보이는 그대로 확정하고, 키는 손대지 않는다.
         if context.secureInput {
             return RouterResult(effects: commitAsDisplayed(), passThrough: true)
@@ -85,13 +90,28 @@ public final class KeyRouter {
             return RouterResult(effects: [.setMarked(session.display)], passThrough: false)
 
         case .rightCommandTap:
-            guard session.flip() else { return RouterResult(effects: [], passThrough: true) }
-            return RouterResult(effects: [.setMarked(session.display)], passThrough: false)
+            if session.flip() { return RouterResult(effects: [.setMarked(session.display)], passThrough: false) }
+            // 터미널은 앞 글자를 바꿔 쓸 수 없다.
+            guard !context.terminalLike, let (old, new) = session.retroCandidate() else {
+                return RouterResult(effects: [], passThrough: true)
+            }
+            return RouterResult(effects: [.replaceLast(old: old + " ", new: new + " ")], passThrough: false)
+
+        case .space:
+            let committed = session.endWord()
+            if committed != nil { session.armRetro() }
+            return pass(after: committed)
 
         case .other:
             return pass(after: session.endWord())
         }
     }
+
+    /// `.replaceLast` 를 입력창에 적용했으면 부른다. 되돌린 언어를 기억하고 배우기 대상으로 알린다.
+    public func retroFlipApplied() { session.applyRetroFlip() }
+
+    /// 입력창이 앞 글자를 알려 주지 않거나 달라서 `.replaceLast` 를 못 했으면 부른다.
+    public func retroFlipFailed() { session.clearRetro() }
 
     /// 포커스가 옮겨 갈 때처럼 판별 없이 지금 보이는 그대로 확정한다.
     public func commitAsDisplayed() -> [Effect] {
