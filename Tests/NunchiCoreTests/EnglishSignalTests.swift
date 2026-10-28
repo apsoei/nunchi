@@ -10,15 +10,31 @@ import Testing
 
     @Test func detectsEnglishMidWord() {
         #expect(firstSignal("test") == 2)       // ㅅㄷ
-        #expect(firstSignal("kubectl") == 2)    // ㅏㅕ
+        #expect(firstSignal("kubectl") == 1)    // ㅏ 로 시작(모음 시작은 바로 영어)
         #expect(firstSignal("commit") == 3)     // 채ㅡ
         #expect(firstSignal("gradle") == 2)     // ㅎㄱ
         #expect(firstSignal("spring") == 6)     // 끝의 n 은 ㅜ(울음)일 수 있어 g 까지 본다
     }
 
-    @Test func neverSwitchesOnFirstLowercaseKey() {
-        #expect(!EnglishSignal.looksEnglish(Array("o")))
-        #expect(!EnglishSignal.looksEnglish(Array("k")))
+    @Test func neverSwitchesOnFirstConsonantKey() {
+        #expect(!EnglishSignal.looksEnglish(Array("r")))   // ㄱ
+        #expect(!EnglishSignal.looksEnglish(Array("d")))   // ㅇ
+    }
+
+    @Test func wordStartingWithVowelIsEnglishAtOnce() {
+        // 한국어 글자는 모음으로 시작하지 않는다(아 = ㅇ+ㅏ).
+        for key in ["o", "p", "i", "u", "y", "j", "k", "l"] {   // ㅐ ㅔ ㅑ ㅕ ㅛ ㅓ ㅏ ㅣ
+            #expect(EnglishSignal.looksEnglish(Array(key)), "\(key)")
+        }
+        #expect(firstSignal("open") == 1)
+        #expect(firstSignal("python") == 1)
+    }
+
+    @Test func chatVowelsAtStartStayKorean() {
+        for word in ["b", "bb", "n", "nn", "m", "mm", "h", "hh", "P", "PP"] {   // ㅠ ㅜ ㅡ ㅗ ㅖ
+            #expect(!EnglishSignal.looksEnglish(Array(word)), "\(word)")
+        }
+        #expect(firstSignal("hello") == 2)   // ㅗ 로 시작하는 영어는 두 번째 키에서
     }
 
     @Test func capitalizedFirstLetterIsEnglish() {

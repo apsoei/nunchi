@@ -8,10 +8,12 @@ public enum KeyCodeMap {
     ]
     static let backspace: UInt16 = 0x33
     static let escape: UInt16 = 0x35
+    static let space: UInt16 = 0x31
 
     public static func event(keyCode: UInt16, shift: Bool) -> KeyEvent {
         if keyCode == backspace { return .backspace }
         if keyCode == escape { return .escape }
+        if keyCode == space { return .space }
         guard let letter = letters[keyCode] else { return .other }
         return .letter(shift ? Character(letter.uppercased()) : letter)
     }
@@ -40,8 +42,12 @@ public struct RightCommandTapDetector {
         }
         defer { downAt = nil }
         guard let downAt, !interrupted else { return false }
+        lastHoldDuration = time - downAt
         return time - downAt <= maxDuration
     }
+
+    /// 마지막 탭에서 오른쪽 ⌘ 를 누르고 있던 시간. 그사이 다른 키가 눌렸는지 시스템에 물어볼 때 쓴다.
+    public private(set) var lastHoldDuration: Double = 0
 
     public mutating func keyDown() {
         if downAt != nil { interrupted = true }

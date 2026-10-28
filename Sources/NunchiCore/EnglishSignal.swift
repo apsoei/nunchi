@@ -16,9 +16,14 @@ public enum EnglishSignal {
     /// 낱자모만으로 이뤄져도 한글로 두는 자모(ㅋㅋㅋㅎㅎ, ㅇㅋㅋ, ㅠㅜ).
     static let expressiveJamo: Set<Character> = ["ㅋ", "ㅎ", "ㅠ", "ㅜ", "ㅇ"]
 
+    /// 단어 첫 키가 모음이어도 한글로 두는 것: ㅠ ㅜ ㅡ ㅗ ㅖ (ㅠㅠ, ㅜㅜ, ㅡㅡ, ㅗㅗ, ㅖㅖ).
+    static let chatStartVowels: Set<Character> = ["ㅠ", "ㅜ", "ㅡ", "ㅗ", "ㅖ"]
+
     public static func looksEnglish(_ keys: [Character]) -> Bool {
         guard let first = keys.first else { return false }
         if first.isUppercase && !Jamo.shiftedKeys.contains(first) { return true }
+        // 한국어 글자는 모음으로 시작하지 않는다. 채팅 표현에 쓰는 모음만 뺀다.
+        if let jamo = Jamo.jamo(for: first), Jamo.isVowel(jamo), !chatStartVowels.contains(jamo) { return true }
 
         let body = keys.dropLast(trailingExpressiveCount(keys))
         guard body.count >= 2 else { return false }

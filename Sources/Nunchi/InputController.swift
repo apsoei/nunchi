@@ -24,6 +24,7 @@ final class InputController: IMKInputController {
     private let router = KeyRouter()
     private var tapDetector = RightCommandTapDetector()
     private var terminalLike = false
+    private var terminalEmulator = false
 
     override func recognizedEvents(_ sender: Any!) -> Int {
         Int(NSEvent.EventTypeMask([.keyDown, .flagsChanged]).rawValue)
@@ -31,7 +32,9 @@ final class InputController: IMKInputController {
 
     override func activateServer(_ sender: Any!) {
         super.activateServer(sender)
-        terminalLike = AppProfile.isTerminalLike(bundleID: (sender as? IMKTextInput)?.bundleIdentifier())
+        let bundleID = (sender as? IMKTextInput)?.bundleIdentifier()
+        terminalLike = AppProfile.isTerminalLike(bundleID: bundleID)
+        terminalEmulator = AppProfile.isTerminalEmulator(bundleID: bundleID)
         router.activate(terminalLike: terminalLike)
     }
 
@@ -58,6 +61,10 @@ final class InputController: IMKInputController {
             guard tapDetector.flagsChanged(keyCode: event.keyCode, rightCommandDown: rightDown, time: event.timestamp) else {
                 return false
             }
+            // 앱이 ⌘P 같은 단축키를 먼저 가져가면 P 가 입력기에 안 온다. 누르고 있는 동안 다른 키가 눌렸는지
+            // 시스템에 물어서(권한 불필요) 눌렸으면 뒤집기가 아니라 단축키로 본다.
+            let sinceLastKey = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
+            guard sinceLastKey >= tapDetector.lastHoldDuration else { return false }
             keyEvent = .rightCommandTap
         case .keyDown:
             tapDetector.keyDown()
@@ -70,7 +77,8 @@ final class InputController: IMKInputController {
             secureInput: IsSecureEventInputEnabled(),
             terminalLike: terminalLike,
             capsLock: flags.contains(.capsLock),
-            modifierHeld: event.type == .keyDown && !flags.intersection([.command, .control, .option]).isEmpty
+            modifierHeld: event.type == .keyDown && !flags.intersection([.command, .control, .option]).isEmpty,
+            terminalEmulator: terminalEmulator
         )
         Shared.store.reloadIfChanged()
         router.wordbook = Shared.store.wordbook
@@ -126,6 +134,17 @@ final class InputController: IMKInputController {
         }
     }
 
+    /// 커서 바로 앞이 정말 `old` 일 때만 `new` 로 바꾼다. 앱이 앞 글자를 알려 주지 않으면 하지 않는다.
+    private func replaceBeforeCursor(_ old: String, with new: String, in client: IMKTextInput) -> Bool {
+        let cursor = client.selectedRange()
+        let length = old.utf16.count
+        guard cursor.location != NSNotFound, cursor.length == 0, cursor.location >= length else { return false }
+        let range = NSRange(location: cursor.location - length, length: length)
+        guard client.attributedSubstring(from: range)?.string == old else { return false }
+        client.insertText(new, replacementRange: range)
+        return true
+    }
+
     private func apply(_ effects: [Effect], to sender: Any!) {
         guard !effects.isEmpty, let client = sender as? IMKTextInput else { return }
         let notFound = NSRange(location: NSNotFound, length: 0)
@@ -137,6 +156,15 @@ final class InputController: IMKInputController {
                 client.setMarkedText(text, selectionRange: NSRange(location: text.utf16.count, length: 0), replacementRange: notFound)
             case .clearMarked:
                 client.setMarkedText("", selectionRange: NSRange(location: 0, length: 0), replacementRange: notFound)
+            case .retypeLast(let deleteCount, let text):
+                client.insertText(String(repeating: "\u{7f}", count: deleteCount) + text, replacementRange: notFound)
+                router.retroFlipApplied()
+            case .replaceLast(let old, let new):
+                if replaceBeforeCursor(old, with: new, in: client) {
+                    router.retroFlipApplied()
+                } else {
+                    router.retroFlipFailed()
+                }
             }
         }
     }

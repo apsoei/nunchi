@@ -18,6 +18,24 @@ public enum AppProfile {
 
     static let terminalLikePrefixes = ["com.jetbrains.", "com.google.android.studio"]
 
+    /// 입력기가 보낸 글자를 키 입력처럼 프로그램에 넘기는 터미널. 확정한 단어를 지우기 문자(DEL)로 지우고 다시 칠 수 있다.
+    /// 편집기(VSCode 등)는 넣지 않는다 — 지우기 문자가 글자로 들어가 버린다.
+    static let terminalEmulatorIDs: Set<String> = [
+        "com.apple.Terminal",
+        "com.googlecode.iterm2",
+        "dev.warp.Warp-Stable",
+        "com.mitchellh.ghostty",
+        "com.cmuxterm.app",
+        "net.kovidgoyal.kitty",
+        "io.alacritty",
+        "com.github.wez.wezterm",
+    ]
+
+    public static func isTerminalEmulator(bundleID: String?) -> Bool {
+        guard let bundleID else { return false }
+        return terminalEmulatorIDs.contains(bundleID)
+    }
+
     public static func isTerminalLike(bundleID: String?) -> Bool {
         guard let bundleID else { return false }
         return terminalLikeIDs.contains(bundleID) || terminalLikePrefixes.contains { bundleID.hasPrefix($0) }
