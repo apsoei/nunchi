@@ -5,6 +5,8 @@ public struct Composition: Equatable, Sendable {
     public let hasOrphan: Bool
     /// 마지막 글자가 모음을 기다리는 낱자음이다(가ㄸ 의 ㄸ). 치는 도중에는 정상이지만 단어 끝에서는 이상하다.
     public let hasTrailingOrphan: Bool
+    /// 끝에서부터 이어지는 낱자모 글자 수(좋앜ㅋ → 1, ㅋㅋ → 2, 경우 → 0).
+    public let trailingLoneCount: Int
 }
 
 /// 두벌식 오토마타. 단어 하나 길이의 키 목록을 매번 처음부터 다시 조합한다(백스페이스가 단순해진다).
@@ -72,9 +74,12 @@ public enum HangulComposer {
             }
         }
 
-        let text = String((done + [cur]).compactMap(\.rendered))
+        let blocks = done + (cur.isEmpty ? [] : [cur])
+        let text = String(blocks.compactMap(\.rendered))
         let hasOrphan = done.contains(where: \.isOrphan) || (cur.jung != nil && cur.cho == nil)
         let hasTrailingOrphan = cur.cho != nil && cur.jung == nil
-        return Composition(text: text, hasOrphan: hasOrphan, hasTrailingOrphan: hasTrailingOrphan)
+        let trailingLoneCount = blocks.reversed().prefix(while: \.isOrphan).count
+        return Composition(text: text, hasOrphan: hasOrphan, hasTrailingOrphan: hasTrailingOrphan,
+                           trailingLoneCount: trailingLoneCount)
     }
 }
