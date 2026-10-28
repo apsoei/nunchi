@@ -155,6 +155,7 @@ import Testing
         #expect(AppProfile.isTerminalLike(bundleID: "com.googlecode.iterm2"))
         #expect(AppProfile.isTerminalLike(bundleID: "com.jetbrains.intellij"))
         #expect(AppProfile.isTerminalLike(bundleID: "com.microsoft.VSCode"))
+        #expect(AppProfile.isTerminalLike(bundleID: "com.cmuxterm.app"))
         #expect(!AppProfile.isTerminalLike(bundleID: "com.tinyspeck.slackmacgap"))
         #expect(!AppProfile.isTerminalLike(bundleID: nil))
     }
