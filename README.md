@@ -53,6 +53,7 @@ brew uninstall --cask --zap nunchi    # 단어장까지 삭제
 
 - Apple 개발자 서명이 없는 앱이라, 설치할 때 macOS 의 "인터넷에서 받은 파일" 표시(quarantine)를 지운다. 회사 맥이면 보안 담당 확인을 먼저 받는다.
 - 키가 안 먹으면 다른 입력 소스로 바꿨다가 다시 눈치를 고른다. 그래도 안 되면 로그아웃·로그인.
+- 업데이트 뒤 입력 메뉴에서 눈치가 안 보이면(설정에는 남아 있는데 메뉴에 없음): **입력 소스 › 편집…** 에서 눈치를 **−** 로 뺐다가 **+** 로 다시 추가한다. 0.3.3 까지의 설치본에서 업데이트할 때 한 번 더 생길 수 있다.
 - 네트워크를 쓰지 않아 친 내용을 어디로도 보내지 않는다. 파일에 남는 것은 단어장(`~/Library/Application Support/Nunchi/words.txt`, 직접 적은 단어와 Esc 로 배운 단어)뿐이다.
 
 ## 작동 방식
@@ -186,7 +187,7 @@ flowchart TD
 
 ## 배포 (관리자용)
 
-tap 저장소: [apsoei/homebrew-tap](https://github.com/apsoei/homebrew-tap) 의 `Casks/nunchi.rb`. 설치 후 quarantine 제거·입력 소스 등록, 삭제 전 해제·종료를 한다.
+tap 저장소: [apsoei/homebrew-tap](https://github.com/apsoei/homebrew-tap) 의 `Casks/nunchi.rb`. 설치 후 quarantine 제거·입력 소스 등록, 삭제 전 프로세스 종료를 한다. 입력 소스를 끄는(`--unregister`) 단계는 두지 않는다 — brew 는 업데이트 때도 이전 버전의 삭제 단계를 거쳐서, 끄기→켜기 사이에 입력 메뉴에서 눈치가 사라졌다.
 
 ### 새 버전 배포
 
