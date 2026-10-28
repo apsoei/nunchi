@@ -136,7 +136,26 @@ flowchart TD
 | Esc로 배우기 | 켜기·끄기(기본 켬) |
 | 배운 단어 지우기 | 배운 단어만 지운다. 직접 적은 단어는 남고, 지우기 전 내용은 `words.txt.bak` 에 남는다 |
 
-## 빌드·설치
+## 설치 (Homebrew)
+
+```bash
+brew install --cask apsoei/tap/nunchi   # 처음 한 번 (tap 과 설치를 같이)
+brew upgrade --cask nunchi              # 업데이트 — 전에 입력 소스를 ABC 로 바꿔 두고, 끝나면 '눈치'를 다시 고른다
+brew uninstall --cask nunchi            # 삭제 (단어장은 남김)
+brew uninstall --cask --zap nunchi      # 단어장까지 삭제
+```
+
+- tap 저장소: [apsoei/homebrew-tap](https://github.com/apsoei/homebrew-tap) (`Casks/nunchi.rb`). 설치 후 입력 소스 등록, 삭제 전 해제까지 한다.
+- 서명이 없는 앱이라 설치 단계에서 "인터넷에서 받은 파일" 표시(quarantine)를 지운다. 회사 맥이면 보안 담당 확인을 먼저 받는다.
+- 아직 저장소가 비공개라 다른 사람은 설치할 수 없다(공개 전환 후 사용 가능).
+
+### 새 버전 배포
+
+1. `./scripts/release.sh 0.3.1` → `dist/Nunchi-0.3.1.zip` 과 sha256 출력
+2. `gh release create v0.3.1 dist/Nunchi-0.3.1.zip --title v0.3.1`
+3. tap 의 `Casks/nunchi.rb` 에서 `version`, `sha256` 을 바꿔 푸시
+
+## 빌드·설치 (소스에서)
 
 Command Line Tools(또는 Xcode)만 있으면 된다.
 
