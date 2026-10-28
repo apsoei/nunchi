@@ -9,6 +9,9 @@ public final class InputSession {
     public private(set) var keys: [Character] = []
     public private(set) var previousLanguage: Language?
     private var mode: Mode = .auto
+    /// 사용자 단어장. 친 키가 단어장 단어와 똑같으면 뒤집은 경우를 빼고 그 언어로 보여 주고 확정한다.
+    public var wordbook: Wordbook = .empty
+    private var lastFlip: Flip?
 
     public init() {}
 
@@ -16,9 +19,9 @@ public final class InputSession {
 
     public var displayLanguage: Language {
         switch mode {
-        case .auto: .korean
-        case .autoEnglish: .english
         case .forced(let language): language
+        case .auto: wordbook.language(for: keys) ?? .korean
+        case .autoEnglish: wordbook.language(for: keys) ?? .english
         }
     }
 
@@ -48,15 +51,23 @@ public final class InputSession {
         return true
     }
 
-    /// 단어 끝. 언어를 판별해 확정할 글자를 돌려준다.
+    /// 단어 끝. 언어를 판별해 확정할 글자를 돌려준다. 뒤집어서 판별과 다르게 확정했으면 `takeFlip()` 으로 알 수 있다.
     public func endWord() -> String? {
         guard !keys.isEmpty else { return nil }
-        let language: Language = switch mode {
-        case .auto: WordJudge.judge(keys: keys, previous: previousLanguage)
-        case .autoEnglish: .english
-        case .forced(let forced): forced
+        let automatic = wordbook.language(for: keys)
+            ?? (mode == .autoEnglish ? .english : WordJudge.judge(keys: keys, previous: previousLanguage))
+        var language = automatic
+        if case .forced(let forced) = mode {
+            language = forced
+            if forced != automatic { lastFlip = Flip(keys: keys, language: forced) }
         }
         return finish(language)
+    }
+
+    /// 마지막으로 뒤집어서 확정한 단어. 한 번 꺼내면 비워진다.
+    public func takeFlip() -> Flip? {
+        defer { lastFlip = nil }
+        return lastFlip
     }
 
     /// 판별 없이 보이는 그대로 확정한다(포커스 이동, 터미널의 Esc).

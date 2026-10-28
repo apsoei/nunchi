@@ -47,6 +47,14 @@ public final class KeyRouter {
         self.session = session
     }
 
+    public var wordbook: Wordbook {
+        get { session.wordbook }
+        set { session.wordbook = newValue }
+    }
+
+    /// 마지막으로 뒤집어서 확정한 단어(배우기용). 한 번 꺼내면 비워진다.
+    public func takeFlip() -> Flip? { session.takeFlip() }
+
     /// 입력기가 새 앱(입력창)에서 켜질 때. 터미널에서는 애매한 단어를 영어로 본다.
     public func activate(terminalLike: Bool) {
         session.resetContext(to: terminalLike ? .english : nil)

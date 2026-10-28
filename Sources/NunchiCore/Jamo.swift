@@ -40,6 +40,18 @@ enum Jamo {
 
     static func canBeFinal(_ j: Character) -> Bool { jongseong.contains(j) }
 
+    /// 자모 → 키. 단어장의 한글을 키로 되돌릴 때 쓴다.
+    private static let keyForJamo: [Character: Character] = Dictionary(uniqueKeysWithValues: keyMap.map { ($1, $0) })
+
+    static func key(for jamo: Character) -> Character? { keyForJamo[jamo] }
+
+    static let compoundVowelParts: [Character: [Character]] = Dictionary(
+        uniqueKeysWithValues: compoundVowels.map { ($1, Array($0)) }
+    )
+
+    /// 겹모음은 두 키로 나눈다(ㅘ → ㅗㅏ).
+    static func splitVowel(_ vowel: Character) -> [Character] { compoundVowelParts[vowel] ?? [vowel] }
+
     static func syllable(cho: Character, jung: Character, jong: Character?) -> Character {
         let c = choseong.firstIndex(of: cho)!
         let v = jungseong.firstIndex(of: jung)!

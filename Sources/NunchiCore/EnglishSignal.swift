@@ -25,11 +25,12 @@ public enum EnglishSignal {
     }
 
     /// 끝에 붙은 같은 키 반복(ㅋㅋ, ㅎㅎ)이나 ㅠ·ㅜ 묶음의 길이. 섞인 끝(spring 의 ng)은 한 글자만 뗀다.
+    /// 낱자모로 남은 것만 뗀다. 경우 의 ㅜ 처럼 앞 자음과 글자를 이룬 키까지 떼면 ㅇ 이 홀로 남아 영어로 잘못 본다.
     static func trailingExpressiveCount(_ keys: [Character]) -> Int {
         guard let last = keys.last, expressiveKeys.contains(last) else { return 0 }
         let sameRun = keys.reversed().prefix { $0 == last }.count
         let cryRun = cryingKeys.contains(last) ? keys.reversed().prefix { cryingKeys.contains($0) }.count : 0
-        return max(sameRun, cryRun)
+        return min(max(sameRun, cryRun), HangulComposer.compose(keys).trailingLoneCount)
     }
 
     static func isShorthand(_ text: String) -> Bool {
