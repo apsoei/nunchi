@@ -85,6 +85,36 @@ import Testing
         #expect(s.endWord() == "새")
     }
 
+    @Test func shorthandPrefixDoesNotLockEnglish() {
+        let s = session(typing: "drf")
+        #expect(s.display == "drf")        // ㅇㄱㄹ 까지는 영어로 보인다
+        s.type("d")
+        #expect(s.display == "ㅇㄱㄹㅇ")    // 줄임말이 되는 순간 한글로 돌아온다
+        #expect(s.endWord() == "ㅇㄱㄹㅇ")
+    }
+
+    @Test func capsLockStillJudgesAndUppercasesEnglish() {
+        let s = InputSession()
+        "ahslxjfld".forEach { s.type($0, capsLock: true) }
+        #expect(s.display == "모니터링")
+        #expect(s.endWord() == "모니터링")
+        "cnrk".forEach { s.type($0, capsLock: true) }
+        #expect(s.endWord() == "추가")
+        "api".forEach { s.type($0, capsLock: true) }
+        #expect(s.display == "API")
+        #expect(s.endWord() == "API")
+    }
+
+    @Test func capsLockCaseSurvivesBackspaceAndFlip() {
+        let s = InputSession()
+        "rk".forEach { s.type($0, capsLock: true) }
+        #expect(s.flip())
+        #expect(s.display == "RK")
+        #expect(s.backspace())
+        s.type("k")
+        #expect(s.display == "Rk")
+    }
+
     @Test func commitAsDisplayedSkipsJudging() {
         let s = session(typing: "git")
         #expect(s.commitAsDisplayed() == "햣")

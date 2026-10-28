@@ -65,13 +65,13 @@ public final class KeyRouter {
         if context.secureInput {
             return RouterResult(effects: commitAsDisplayed(), passThrough: true)
         }
-        if context.modifierHeld || context.capsLock {
+        if context.modifierHeld {
             return pass(after: session.endWord())
         }
 
         switch event {
         case .letter(let key):
-            session.type(key)
+            session.type(key, capsLock: context.capsLock)
             return RouterResult(effects: [.setMarked(session.display)], passThrough: false)
 
         case .backspace:
