@@ -61,11 +61,17 @@ import Testing
         #expect(r.handle(.escape, context: secure) == RouterResult(effects: [], passThrough: true))
     }
 
-    @Test func modifierCombosAndCapsLockCommitThenPass() {
+    @Test func modifierCombosCommitThenPass() {
         let r = router(typing: "git")
         #expect(r.handle(.letter("c"), context: KeyContext(modifierHeld: true)) == RouterResult(effects: [.insert("git")], passThrough: true))
-        let r2 = router(typing: "rk")
-        #expect(r2.handle(.letter("a"), context: KeyContext(capsLock: true)) == RouterResult(effects: [.insert("가")], passThrough: true))
+    }
+
+    @Test func capsLockStillComposes() {
+        let r = KeyRouter()
+        let caps = KeyContext(capsLock: true)
+        #expect(r.handle(.letter("r"), context: caps) == RouterResult(effects: [.setMarked("ㄱ")], passThrough: false))
+        #expect(r.handle(.letter("k"), context: caps) == RouterResult(effects: [.setMarked("가")], passThrough: false))
+        #expect(r.handle(.other, context: caps) == RouterResult(effects: [.insert("가")], passThrough: true))
     }
 
     @Test func terminalAssumesEnglishForAmbiguousWords() {

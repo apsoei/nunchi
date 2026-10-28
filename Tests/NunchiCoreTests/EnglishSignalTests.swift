@@ -66,6 +66,22 @@ import Testing
         #expect(!EnglishSignal.looksEnglish(Array("zzzgg")))     // ㅋㅋㅋㅎㅎ
     }
 
+    @Test func longerShorthandStaysKorean() {
+        for word in ["drfd", "wrs", "gdx", "sdt", "rde", "qqqr"] {   // ㅇㄱㄹㅇ ㅈㄱㄴ ㅎㅇㅌ ㄴㅇㅅ ㄱㅇㄷ ㅂㅂㅂㄱ
+            #expect(!EnglishSignal.looksEnglish(Array(word)), "\(word)")
+        }
+    }
+
+    @Test func shorthandWithLaughterStaysKorean() {
+        #expect(!EnglishSignal.looksEnglish(Array("fdzz")))     // ㄹㅇㅋㅋ
+        #expect(!EnglishSignal.looksEnglish(Array("drfdzz")))   // ㅇㄱㄹㅇㅋㅋ
+    }
+
+    @Test func trembleAfterWordStaysKorean() {
+        #expect(!EnglishSignal.looksEnglish(Array("rufgkaee")))    // 결함ㄷㄷ
+        #expect(!EnglishSignal.looksEnglish(Array("eoqkreee")))    // 대박ㄷㄷㄷ
+    }
+
     @Test func englishWordsEndingWithThoseKeysAreStillEnglish() {
         #expect(EnglishSignal.looksEnglish(Array("testing")))
         #expect(EnglishSignal.looksEnglish(Array("bug")))

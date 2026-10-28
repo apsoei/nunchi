@@ -49,6 +49,20 @@ import Testing
         #expect(judge("gjfbb") == .korean)             // 헐ㅠㅠ → 허류ㅠ
     }
 
+    @Test func chatExpressionsStayKorean() {
+        #expect(judge("rufgkaee") == .korean)   // 결함ㄷㄷ
+        #expect(judge("eoqkree") == .korean)    // 대박ㄷㄷ
+        #expect(judge("drfd") == .korean)       // ㅇㄱㄹㅇ
+        #expect(judge("fdzz") == .korean)       // ㄹㅇㅋㅋ
+        #expect(judge("drfdzz") == .korean)     // ㅇㄱㄹㅇㅋㅋ
+    }
+
+    @Test func englishEndingInDoubleLettersStaysEnglish() {
+        for word in ["free", "see", "tree", "coffee", "class", "glass", "add", "dress"] {
+            #expect(judge(word) == .english, "\(word)")
+        }
+    }
+
     @Test func singleLoneKeyFollowsThePreviousWord() {
         #expect(judge("t") == .korean)
         #expect(judge("t", after: .english) == .english)   // don't 의 t

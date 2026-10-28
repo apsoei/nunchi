@@ -7,6 +7,8 @@ public final class InputSession {
     }
 
     public private(set) var keys: [Character] = []
+    /// 키마다 Caps Lock 이 켜져 있었는지. 판별은 소문자 키로 하고, 영어로 보여 줄 때만 대문자로 바꾼다.
+    private var capsLocked: [Bool] = []
     public private(set) var previousLanguage: Language?
     private var mode: Mode = .auto
     /// 사용자 단어장. 친 키가 단어장 단어와 똑같으면 뒤집은 경우를 빼고 그 언어로 보여 주고 확정한다.
@@ -27,15 +29,22 @@ public final class InputSession {
 
     public var display: String { render(displayLanguage) }
 
-    public func type(_ key: Character) {
+    public func type(_ key: Character, capsLock: Bool = false) {
         keys.append(key)
-        if mode == .auto, EnglishSignal.looksEnglish(keys) { mode = .autoEnglish }
+        capsLocked.append(capsLock)
+        if mode == .auto, EnglishSignal.looksEnglish(keys) {
+            mode = .autoEnglish
+        } else if mode == .autoEnglish, EnglishSignal.isChatExpression(keys) {
+            // ㅇㄱㄹ 에서 영어가 됐어도 ㅇㄱㄹㅇ 처럼 줄임말이 되면 한글로 돌아온다.
+            mode = .auto
+        }
     }
 
     /// 지울 키가 없으면 false. 이때 백스페이스는 앱이 처리해야 한다.
     public func backspace() -> Bool {
         guard !keys.isEmpty else { return false }
         keys.removeLast()
+        capsLocked.removeLast()
         if keys.isEmpty {
             mode = .auto
         } else if mode == .autoEnglish, !EnglishSignal.looksEnglish(keys) {
@@ -85,11 +94,13 @@ public final class InputSession {
         let text = render(language)
         previousLanguage = language
         keys.removeAll()
+        capsLocked.removeAll()
         mode = .auto
         return text
     }
 
     private func render(_ language: Language) -> String {
-        language == .english ? String(keys) : HangulComposer.compose(keys).text
+        guard language == .english else { return HangulComposer.compose(keys).text }
+        return String(zip(keys, capsLocked).map { key, caps in caps ? Character(key.uppercased()) : key })
     }
 }

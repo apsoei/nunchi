@@ -10,7 +10,7 @@ enum Shared {
     static var learner = FlipLearner()
 
     private static let learnKey = "learnFromEsc"
-    /// Esc 로 배우기. 기본은 켬.
+    /// 뒤집어서(Esc·오른쪽 ⌘) 배우기. 기본은 켬.
     static var learnFromEsc: Bool {
         get { UserDefaults.standard.object(forKey: learnKey) as? Bool ?? true }
         set { UserDefaults.standard.set(newValue, forKey: learnKey) }
@@ -95,7 +95,7 @@ final class InputController: IMKInputController {
     override func menu() -> NSMenu! {
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "단어장 열기", action: #selector(openWordbook(_:)), keyEquivalent: ""))
-        let learnItem = NSMenuItem(title: "Esc로 배우기", action: #selector(toggleLearning(_:)), keyEquivalent: "")
+        let learnItem = NSMenuItem(title: "뒤집어서 배우기", action: #selector(toggleLearning(_:)), keyEquivalent: "")
         learnItem.state = Shared.learnFromEsc ? .on : .off
         menu.addItem(learnItem)
         menu.addItem(NSMenuItem(title: "배운 단어 지우기", action: #selector(clearLearned(_:)), keyEquivalent: ""))

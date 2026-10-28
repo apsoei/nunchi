@@ -15,7 +15,7 @@ public enum WordJudge {
         // 끝에 낱자음이 남았다(애찯ㄱ, ㄷㅎㅎ). 한국어 단어는 이렇게 끝나지 않는다.
         let bodyComposition = HangulComposer.compose(body)
         if keys.count >= 2, bodyComposition.hasOrphan || bodyComposition.hasTrailingOrphan,
-           !EnglishSignal.isShorthand(full.text) {
+           !EnglishSignal.isChatExpression(keys) {
             return .english
         }
 
