@@ -24,6 +24,7 @@ final class InputController: IMKInputController {
     private let router = KeyRouter()
     private var tapDetector = RightCommandTapDetector()
     private var terminalLike = false
+    private var terminalEmulator = false
 
     override func recognizedEvents(_ sender: Any!) -> Int {
         Int(NSEvent.EventTypeMask([.keyDown, .flagsChanged]).rawValue)
@@ -31,7 +32,9 @@ final class InputController: IMKInputController {
 
     override func activateServer(_ sender: Any!) {
         super.activateServer(sender)
-        terminalLike = AppProfile.isTerminalLike(bundleID: (sender as? IMKTextInput)?.bundleIdentifier())
+        let bundleID = (sender as? IMKTextInput)?.bundleIdentifier()
+        terminalLike = AppProfile.isTerminalLike(bundleID: bundleID)
+        terminalEmulator = AppProfile.isTerminalEmulator(bundleID: bundleID)
         router.activate(terminalLike: terminalLike)
     }
 
@@ -70,7 +73,8 @@ final class InputController: IMKInputController {
             secureInput: IsSecureEventInputEnabled(),
             terminalLike: terminalLike,
             capsLock: flags.contains(.capsLock),
-            modifierHeld: event.type == .keyDown && !flags.intersection([.command, .control, .option]).isEmpty
+            modifierHeld: event.type == .keyDown && !flags.intersection([.command, .control, .option]).isEmpty,
+            terminalEmulator: terminalEmulator
         )
         Shared.store.reloadIfChanged()
         router.wordbook = Shared.store.wordbook
@@ -148,6 +152,9 @@ final class InputController: IMKInputController {
                 client.setMarkedText(text, selectionRange: NSRange(location: text.utf16.count, length: 0), replacementRange: notFound)
             case .clearMarked:
                 client.setMarkedText("", selectionRange: NSRange(location: 0, length: 0), replacementRange: notFound)
+            case .retypeLast(let deleteCount, let text):
+                client.insertText(String(repeating: "\u{7f}", count: deleteCount) + text, replacementRange: notFound)
+                router.retroFlipApplied()
             case .replaceLast(let old, let new):
                 if replaceBeforeCursor(old, with: new, in: client) {
                     router.retroFlipApplied()

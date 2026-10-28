@@ -14,12 +14,16 @@ public struct KeyContext: Equatable, Sendable {
     public var capsLock: Bool
     /// ⌘·⌃·⌥ 가 눌려 있다(단축키).
     public var modifierHeld: Bool
+    /// 터미널 프로그램(cmux·Terminal 등). 확정한 단어를 지우기 문자로 지우고 다시 쳐서 되돌린다.
+    public var terminalEmulator: Bool
 
-    public init(secureInput: Bool = false, terminalLike: Bool = false, capsLock: Bool = false, modifierHeld: Bool = false) {
+    public init(secureInput: Bool = false, terminalLike: Bool = false, capsLock: Bool = false, modifierHeld: Bool = false,
+                terminalEmulator: Bool = false) {
         self.secureInput = secureInput
         self.terminalLike = terminalLike
         self.capsLock = capsLock
         self.modifierHeld = modifierHeld
+        self.terminalEmulator = terminalEmulator
     }
 }
 
@@ -30,6 +34,8 @@ public enum Effect: Equatable, Sendable {
     case clearMarked
     /// 커서 바로 앞의 `old` 를 `new` 로 바꾼다(확정한 단어 되돌리기). 앞 글자가 `old` 가 아니면 하지 않는다.
     case replaceLast(old: String, new: String)
+    /// 지우기 문자(DEL)를 `deleteCount` 번 보내고 `text` 를 친다. 앞 글자를 확인할 수 없는 터미널용.
+    case retypeLast(deleteCount: Int, text: String)
 }
 
 public struct RouterResult: Equatable, Sendable {
@@ -91,10 +97,13 @@ public final class KeyRouter {
 
         case .rightCommandTap:
             if session.flip() { return RouterResult(effects: [.setMarked(session.display)], passThrough: false) }
-            // 터미널은 앞 글자를 바꿔 쓸 수 없다.
-            guard !context.terminalLike, let (old, new) = session.retroCandidate() else {
-                return RouterResult(effects: [], passThrough: true)
+            guard let (old, new) = session.retroCandidate() else { return RouterResult(effects: [], passThrough: true) }
+            if context.terminalEmulator {
+                // 확정 뒤 다른 키가 없었으니 지울 것은 방금 단어와 공백뿐이다.
+                return RouterResult(effects: [.retypeLast(deleteCount: old.count + 1, text: new + " ")], passThrough: false)
             }
+            // 터미널처럼 다루는 편집기(VSCode 등)는 앞 글자를 바꿔 쓸 수 없다.
+            guard !context.terminalLike else { return RouterResult(effects: [], passThrough: true) }
             return RouterResult(effects: [.replaceLast(old: old + " ", new: new + " ")], passThrough: false)
 
         case .space:

@@ -113,6 +113,18 @@ import Testing
         #expect(t.handle(.rightCommandTap, context: terminal) == RouterResult(effects: [], passThrough: true))
     }
 
+    @Test func terminalEmulatorRetypesWithDeletes() {
+        // 터미널은 앞 글자를 바꿔 쓸 수 없어서, 지우기 문자를 보낸 뒤 다시 친다.
+        let console = KeyContext(terminalEmulator: true)
+        let r = router(typing: "rk", context: console)
+        _ = r.handle(.space, context: console)
+        #expect(r.handle(.rightCommandTap, context: console)
+            == RouterResult(effects: [.retypeLast(deleteCount: 2, text: "rk ")], passThrough: false))
+        r.retroFlipApplied()
+        #expect(r.handle(.rightCommandTap, context: console)
+            == RouterResult(effects: [.retypeLast(deleteCount: 3, text: "가 ")], passThrough: false))
+    }
+
     @Test func failedRewriteIsForgotten() {
         let r = router(typing: "rk")
         _ = r.handle(.space, context: normal)
@@ -155,6 +167,10 @@ import Testing
         #expect(AppProfile.isTerminalLike(bundleID: "com.googlecode.iterm2"))
         #expect(AppProfile.isTerminalLike(bundleID: "com.jetbrains.intellij"))
         #expect(AppProfile.isTerminalLike(bundleID: "com.microsoft.VSCode"))
+        #expect(AppProfile.isTerminalEmulator(bundleID: "com.cmuxterm.app"))
+        #expect(AppProfile.isTerminalEmulator(bundleID: "com.apple.Terminal"))
+        #expect(!AppProfile.isTerminalEmulator(bundleID: "com.microsoft.VSCode"))   // 편집기에 지우기 문자를 넣으면 안 된다
+        #expect(!AppProfile.isTerminalLike(bundleID: "com.cmuxterm.app"))          // cmux 는 Esc 뒤집기를 쓴다
         #expect(!AppProfile.isTerminalLike(bundleID: "com.tinyspeck.slackmacgap"))
         #expect(!AppProfile.isTerminalLike(bundleID: nil))
     }
