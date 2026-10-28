@@ -21,9 +21,6 @@ enum Shared {
 /// 판단 로직은 전부 NunchiCore 에 있다.
 @objc(NunchiInputController)
 final class InputController: IMKInputController {
-    /// NX_DEVICERCMDKEYMASK: modifierFlags 의 장치별 비트 중 오른쪽 ⌘.
-    private static let rightCommandMask: UInt = 0x10
-
     private let router = KeyRouter()
     private var tapDetector = RightCommandTapDetector()
     private var terminalLike = false
@@ -55,7 +52,9 @@ final class InputController: IMKInputController {
 
         switch event.type {
         case .flagsChanged:
-            let rightDown = flags.rawValue & Self.rightCommandMask != 0
+            // 입력기에 오는 이벤트에는 오른쪽 ⌘ 전용 비트(NX_DEVICERCMDKEYMASK)가 지워져 있다.
+            // 키코드로 오른쪽 ⌘ 인지 보고, ⌘ 표시로 누름·뗌을 가른다.
+            let rightDown = flags.contains(.command)
             guard tapDetector.flagsChanged(keyCode: event.keyCode, rightCommandDown: rightDown, time: event.timestamp) else {
                 return false
             }

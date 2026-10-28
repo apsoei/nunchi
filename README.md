@@ -44,8 +44,8 @@ brew install --cask apsoei/tap/nunchi
 ### 업데이트·삭제
 
 ```bash
-brew upgrade --cask nunchi            # 업데이트 — 먼저 입력 소스를 ABC 등으로 바꾸고, 끝나면 '눈치'를 다시 고른다
-brew uninstall --cask nunchi          # 삭제 (단어장은 남김)
+brew upgrade --cask apsoei/tap/nunchi # 업데이트 — 먼저 입력 소스를 ABC 등으로 바꾸고, 끝나면 '눈치'를 다시 고른다
+brew uninstall --cask apsoei/tap/nunchi # 삭제 (단어장은 남김)
 brew uninstall --cask --zap nunchi    # 단어장까지 삭제
 ```
 
