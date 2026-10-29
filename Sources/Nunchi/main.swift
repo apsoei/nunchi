@@ -15,6 +15,8 @@ let connectionName = Bundle.main.infoDictionary?["InputMethodConnectionName"] as
 guard let server = IMKServer(name: connectionName, bundleIdentifier: Bundle.main.bundleIdentifier) else {
     fatalError("IMKServer 를 만들지 못했습니다: \(connectionName)")
 }
+// 비밀번호 입력 등으로 macOS 가 눈치를 잠갔다 풀면 눈치로 되돌린다.
+SecureInputWatcher.shared.start()
 withExtendedLifetime(server) {
     NSApplication.shared.run()
 }
