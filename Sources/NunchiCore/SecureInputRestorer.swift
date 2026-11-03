@@ -8,6 +8,9 @@ public struct SecureInputRestorer {
 
     public init() {}
 
+    /// 눈치를 쓰다가 잠금에 밀려나 아직 잠겨 있는지(마지막 `tick` 기준).
+    public var pushedOut: Bool { wasSecure && pending }
+
     /// 1초마다 부른다. 지금 눈치로 되돌려야 하면 true.
     public mutating func tick(secure: Bool, oursSelected: Bool) -> Bool {
         defer { wasSecure = secure }
