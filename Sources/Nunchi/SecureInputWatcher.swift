@@ -55,7 +55,8 @@ final class SecureInputWatcher {
 
     /// 보안 입력을 켜 둔 프로세스 번호. 없으면 nil. (`ioreg -l | grep kCGSSessionSecureInputPID` 와 같은 값)
     static func secureInputHolder() -> pid_t? {
-        let root = IORegistryEntryFromPath(kIOMainPortDefault, "IOService:/")
+        // 레지스트리 맨 위(Root). IORegistryEntryFromPath("IOService:/") 는 맥 기종 항목을 돌려줘서 여기 값이 없다.
+        let root = IORegistryGetRootEntry(kIOMainPortDefault)
         defer { IOObjectRelease(root) }
         guard let users = IORegistryEntryCreateCFProperty(root, "IOConsoleUsers" as CFString, kCFAllocatorDefault, 0)?
             .takeRetainedValue() as? [[String: Any]] else { return nil }
